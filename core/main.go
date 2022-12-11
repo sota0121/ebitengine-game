@@ -68,6 +68,17 @@ const (
 	mvJump               // 2
 )
 
+var movingStr = map[int]string{
+	mvInvalid: "Invalid",
+	mvStay:    "Stay",
+	mvJump:    "Jump",
+}
+
+var pausedStatusStr = map[bool]string{
+	false: "Running",
+	true:  "Paused",
+}
+
 const (
 	healthMax int = 100
 	energyMax int = 100
@@ -96,7 +107,6 @@ type Runner struct {
 	positionY int
 	pause     bool
 	status    *characterStatus
-	drawOpt   *ebiten.DrawImageOptions
 }
 
 // getCurFrameImage returns the current frame image
@@ -119,9 +129,10 @@ func getRunnerImage() *ebiten.Image {
 // Game is the core game object
 // It implements the ebiten.Game interface
 type Game struct {
-	count  int
-	keys   []ebiten.Key
-	runner *Runner
+	count       int
+	pausedCount int
+	keys        []ebiten.Key
+	runner      *Runner
 }
 
 // NewGame is the constructor for Game
@@ -137,8 +148,9 @@ func NewGame() *Game {
 	status := NewCharacterStatus()
 
 	return &Game{
-		count: 0,
-		keys:  []ebiten.Key{},
+		count:       0,
+		pausedCount: 0,
+		keys:        []ebiten.Key{},
 		runner: &Runner{
 			chImage:   chImage,
 			positionX: 0,
@@ -153,25 +165,51 @@ func NewGame() *Game {
 func (g *Game) Update() error {
 	g.count++
 	g.keys = inpututil.AppendPressedKeys(g.keys[:0])
+	for _, key := range g.keys {
+		switch key {
+		case ebiten.KeyEscape:
+			return fmt.Errorf("escape key pressed")
+		case ebiten.KeySpace:
+			g.runner.status.moving = mvJump
+		case ebiten.KeyP:
+			if !g.runner.pause {
+				g.pausedCount = g.count
+			}
+			g.runner.pause = !g.runner.pause
+		}
+	}
 	return nil
 }
 
 // Draw is called every frame
 func (g *Game) Draw(screen *ebiten.Image) {
+	// --- Draw the texts ---
 	// Draw the game title and frame count
-	lineToPrint := fmt.Sprintf("Runner Animation Demo %d\n", g.count)
-	ebitenutil.DebugPrint(screen, lineToPrint)
+	lineTitle := fmt.Sprintf("Runner Animation Demo %d\n", g.count)
 
-	// Draw the pressed keys
+	// Texts for the pressed keys
 	keyStrs := []string{}
 	for _, key := range g.keys {
 		keyStrs = append(keyStrs, key.String())
 	}
 	linePressedKeys := fmt.Sprintf("\nPressed Keys: %s", strings.Join(keyStrs, ", "))
-	ebitenutil.DebugPrint(screen, linePressedKeys)
+
+	// Texts for the runner status
+	lineRunnerStatus := fmt.Sprintf("\nRunner Status: %s", movingStr[g.runner.status.moving])
+
+	// Texts for the paused status
+	linePausedStatus := fmt.Sprintf("\nPaused Status: %s (paused frame: %d)", pausedStatusStr[g.runner.pause], g.pausedCount)
+
+	// Print the texts
+	lineToPrint := strings.Join([]string{lineTitle, linePressedKeys, lineRunnerStatus, linePausedStatus}, "")
+	ebitenutil.DebugPrint(screen, lineToPrint)
 
 	// Draw the runner
-	screen.DrawImage(g.runner.getCurFrameImage(g.count), g.runner.chImage.drawOpt)
+	if g.runner.pause {
+		screen.DrawImage(g.runner.getCurFrameImage(g.pausedCount), g.runner.chImage.drawOpt)
+	} else {
+		screen.DrawImage(g.runner.getCurFrameImage(g.count), g.runner.chImage.drawOpt)
+	}
 }
 
 // Layout is called every frame
