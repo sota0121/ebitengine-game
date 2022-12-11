@@ -1,13 +1,21 @@
-.PHONY: build run
+.PHONY: build clean test run
 
 GO ?= go
-APP_NAME ?= app
-APP_VERSION ?= 0.0.1
 MAIN_FILE ?= cmd/main.go
-BIN_DIR ?= bin
+OUT_DIR ?= out
+BINARY_NAME ?= ebitenx
+BIN_DIR ?= $(OUT_DIR)/bin
+BIN_PATH ?= $(BIN_DIR)/$(BINARY_NAME)
+COVER_PROFILE ?= $(OUT_DIR)/coverage.out
 
 build:
-	$(GO) build -o $(BIN_DIR)/$(APP_NAME) -ldflags "-X main.version=$(APP_VERSION)" $(MAIN_FILE)
+	$(GO) build -o $(BIN_PATH) -ldflags "-s -w" $(MAIN_FILE)
 
 run:
 	$(GO) run $(MAIN_FILE)
+
+test:
+	$(GO) test -coverprofile=$(COVER_PROFILE) ./...
+
+clean:
+	rm -rf $(OUT_DIR)/*
