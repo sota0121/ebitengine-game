@@ -21,7 +21,8 @@ func execMainGame() {
 	// Set up the game window
 	ebiten.SetWindowSize(640, 480)
 	ebiten.SetWindowTitle("Main Game Title")
-	if err := ebiten.RunGame(&core.Game{}); err != nil {
+	game := core.NewGame()
+	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}
 }

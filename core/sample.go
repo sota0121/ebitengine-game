@@ -1,14 +1,11 @@
 package core
 
 import (
-	"bytes"
 	"image"
 	_ "image/png"
-	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/examples/resources/images"
 )
 
 const (
@@ -25,15 +22,6 @@ const (
 var (
 	runnerImage *ebiten.Image = getRunnerImage()
 )
-
-func getRunnerImage() *ebiten.Image {
-	img, _, err := image.Decode(bytes.NewReader(images.Runner_png))
-	if err != nil {
-		log.Fatal(err)
-	}
-	runnerImage := ebiten.NewImageFromImage(img)
-	return runnerImage
-}
 
 type SampleGame struct {
 	count int

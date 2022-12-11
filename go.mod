@@ -3,6 +3,7 @@ module github.com/sota0121/ebitengine-game
 go 1.17
 
 require (
+	github.com/hajimehoshi/ebiten v1.12.12
 	github.com/hajimehoshi/ebiten/v2 v2.4.13
 	github.com/stretchr/testify v1.8.1
 )
